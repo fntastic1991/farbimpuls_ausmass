@@ -12,6 +12,6 @@ createRoot(document.getElementById('root')!).render(
 // Register service worker for offline support
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/src/service-worker.ts').catch(() => {});
+    navigator.serviceWorker.register('/service-worker.js').catch(() => {});
   });
 }
