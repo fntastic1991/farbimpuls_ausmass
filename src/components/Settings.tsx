@@ -444,7 +444,7 @@ export function Settings() {
                     </div>
                   </div>
 
-                  <div className="flex justify-between items-center">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                     <span className="text-xs text-gray-500">Bereich: {activeScope}</span>
                     <button
                       onClick={() => handleSave(setting)}
@@ -455,17 +455,7 @@ export function Settings() {
                       Speichern
                     </button>
                   </div>
-                  <div className="mt-4 bg-gray-50 border border-gray-200 rounded-lg p-4">
-                    <p className="text-sm font-semibold text-gray-700 mb-2">Vorschau Bexio-Position</p>
-                    <pre className="text-xs text-gray-700 overflow-x-auto">{`{
-  text: ${JSON.stringify(setting.offer_title)}${setting.offer_description ? ' + "\\n' + setting.offer_description.replace(/\n/g, '\\n') + '"' : ''},
-  amount: 1,
-  unit_price: ${Number(setting.unit_price).toFixed(2)},
-  unit_name: "Stk",
-  tax_rate: ${Number(setting.tax_rate).toFixed(1)}
-}`}</pre>
-                    <p className="text-xs text-gray-500 mt-1">Hinweis: Einheit wird beim Übertragen je nach Ausmass automatisch gesetzt; ohne Mess-Einheit verwenden wir „Stk“.</p>
-                  </div>
+                  {/* Bexio-Vorschau entfernt, da nicht benötigt */}
                 </div>
               </div>
             ))}
