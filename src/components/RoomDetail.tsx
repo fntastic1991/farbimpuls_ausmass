@@ -532,6 +532,31 @@ export function RoomDetail({ room, onBack }: RoomDetailProps) {
           </div>
         )}
       </div>
+
+      {/* Fotos-Galerie separat */}
+      <div className="bg-white rounded-lg shadow p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-2xl font-bold text-gray-800">Fotos</h2>
+        </div>
+        {Object.keys(photosByMeasurement).length === 0 ? (
+          <p className="text-gray-500">Noch keine Fotos vorhanden. Fügen Sie beim Erfassen einer Position Fotos hinzu.</p>
+        ) : (
+          <div className="space-y-6">
+            {measurements.map((m) => (
+              photosByMeasurement[m.id]?.length ? (
+                <div key={m.id}>
+                  <p className="font-medium text-gray-800 mb-2">{m.description || 'Position'}</p>
+                  <div className="grid grid-cols-3 gap-2">
+                    {photosByMeasurement[m.id].map((p) => (
+                      <img key={p.id} src={p.url} alt="Foto" className="w-full h-24 object-cover rounded" />
+                    ))}
+                  </div>
+                </div>
+              ) : null
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
