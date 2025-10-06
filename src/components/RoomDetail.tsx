@@ -20,6 +20,7 @@ export function RoomDetail({ room, onBack }: RoomDetailProps) {
   const [photosByMeasurement, setPhotosByMeasurement] = useState<Record<string, MeasurementPhoto[]>>({});
   const [roomPhotos, setRoomPhotos] = useState<RoomPhoto[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [viewerUrl, setViewerUrl] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
     category: '' as MeasurementCategory,
@@ -573,7 +574,12 @@ export function RoomDetail({ room, onBack }: RoomDetailProps) {
           <div className="grid grid-cols-3 gap-2">
             {roomPhotos.map((p) => (
               <div key={p.id} className="relative group">
-                <img src={p.url} alt="Foto" className="w-full h-24 object-cover rounded" />
+                <img
+                  src={p.url}
+                  alt="Foto"
+                  onClick={() => setViewerUrl(p.url)}
+                  className="w-full h-24 object-contain bg-gray-100 rounded cursor-zoom-in"
+                />
                 <button
                   onClick={async () => {
                     await supabase.from('room_photos').delete().eq('id', p.id);
@@ -589,6 +595,29 @@ export function RoomDetail({ room, onBack }: RoomDetailProps) {
           </div>
         )}
       </div>
+
+      {viewerUrl && (
+        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center" onClick={() => setViewerUrl(null)}>
+          <div className="relative max-w-full max-h-full p-4" onClick={(e) => e.stopPropagation()}>
+            <button
+              onClick={() => setViewerUrl(null)}
+              className="absolute -top-2 -right-2 bg-white text-black rounded-full p-2 shadow"
+              aria-label="Schliessen"
+            >
+              <X size={18} />
+            </button>
+            <img
+              src={viewerUrl}
+              alt="Foto"
+              className="max-h-[85vh] max-w-[95vw] object-contain"
+            />
+            <div className="mt-3 flex justify-end gap-2">
+              <a href={viewerUrl} target="_blank" rel="noreferrer" className="px-3 py-2 bg-white rounded shadow text-sm">In neuem Tab öffnen</a>
+              <a href={viewerUrl} download className="px-3 py-2 bg-white rounded shadow text-sm">Download</a>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
