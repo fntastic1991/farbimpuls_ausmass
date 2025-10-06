@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { ArrowLeft, Plus, Trash2, Calculator, Camera, Upload, X } from 'lucide-react';
-import { supabase, type Room, type Measurement, type MeasurementCategory, type MeasurementUnit, type CategorySetting, type MeasurementPhoto } from '../lib/supabase';
+import { supabase, type Room, type Measurement, type MeasurementCategory, type MeasurementUnit, type CategorySetting, type MeasurementPhoto, type RoomPhoto } from '../lib/supabase';
 
 interface RoomDetailProps {
   room: Room;
@@ -18,6 +18,7 @@ export function RoomDetail({ room, onBack }: RoomDetailProps) {
   const [measurements, setMeasurements] = useState<Measurement[]>([]);
   const [categories, setCategories] = useState<CategorySetting[]>([]);
   const [photosByMeasurement, setPhotosByMeasurement] = useState<Record<string, MeasurementPhoto[]>>({});
+  const [roomPhotos, setRoomPhotos] = useState<RoomPhoto[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
     category: '' as MeasurementCategory,
@@ -35,6 +36,7 @@ export function RoomDetail({ room, onBack }: RoomDetailProps) {
   useEffect(() => {
     loadMeasurements();
     loadCategories();
+    loadRoomPhotos();
   }, [room.id]);
 
   async function loadCategories() {
@@ -59,6 +61,15 @@ export function RoomDetail({ room, onBack }: RoomDetailProps) {
     } catch (error) {
       console.error('Fehler beim Laden der Kategorien:', error);
     }
+  }
+
+  async function loadRoomPhotos() {
+    const { data } = await supabase
+      .from('room_photos')
+      .select('*')
+      .eq('room_id', room.id)
+      .order('created_at', { ascending: false });
+    setRoomPhotos(data || []);
   }
 
   async function loadMeasurements() {
@@ -377,71 +388,7 @@ export function RoomDetail({ room, onBack }: RoomDetailProps) {
               </div>
             )}
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Fotos
-              </label>
-              <div className="space-y-3">
-                <div className="flex gap-2">
-                  <label className="flex-1 flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg hover:border-primary hover:bg-gray-50 transition-all cursor-pointer">
-                    <Camera size={20} className="text-gray-600" />
-                    <span className="text-sm font-medium text-gray-700">Foto aufnehmen</span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      capture="environment"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          const reader = new FileReader();
-                          reader.onload = () => {
-                            setFormData({ ...formData, photos: [...formData.photos, reader.result as string] });
-                          };
-                          reader.readAsDataURL(file);
-                        }
-                      }}
-                      className="hidden"
-                    />
-                  </label>
-                  <label className="flex-1 flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg hover:border-primary hover:bg-gray-50 transition-all cursor-pointer">
-                    <Upload size={20} className="text-gray-600" />
-                    <span className="text-sm font-medium text-gray-700">Foto hochladen</span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      multiple
-                      onChange={(e) => {
-                        const files = Array.from(e.target.files || []);
-                        files.forEach(file => {
-                          const reader = new FileReader();
-                          reader.onload = () => {
-                            setFormData(prev => ({ ...prev, photos: [...prev.photos, reader.result as string] }));
-                          };
-                          reader.readAsDataURL(file);
-                        });
-                      }}
-                      className="hidden"
-                    />
-                  </label>
-                </div>
-                {formData.photos.length > 0 && (
-                  <div className="grid grid-cols-3 gap-2">
-                    {formData.photos.map((photo, index) => (
-                      <div key={index} className="relative group">
-                        <img src={photo} alt={`Foto ${index + 1}`} className="w-full h-24 object-cover rounded-lg" />
-                        <button
-                          type="button"
-                          onClick={() => setFormData({ ...formData, photos: formData.photos.filter((_, i) => i !== index) })}
-                          className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <X size={14} />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
+            {/* Fotoeingabe aus dem Ausmass-Formular entfernt */}
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -535,24 +482,66 @@ export function RoomDetail({ room, onBack }: RoomDetailProps) {
 
       {/* Fotos-Galerie separat */}
       <div className="bg-white rounded-lg shadow p-6">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
           <h2 className="text-2xl font-bold text-gray-800">Fotos</h2>
+          <div className="flex gap-2">
+            <label className="flex items-center gap-2 px-4 py-2 border-2 border-dashed border-gray-300 rounded-lg hover:border-primary hover:bg-gray-50 transition-all cursor-pointer">
+              <Camera size={20} className="text-gray-600" />
+              <span className="text-sm font-medium text-gray-700">Foto aufnehmen</span>
+              <input type="file" accept="image/*" capture="environment" className="hidden"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  const path = `${room.id}/${Date.now()}_cam.png`;
+                  const { error } = await supabase.storage.from('room-photos').upload(path, file, { upsert: true });
+                  if (!error) {
+                    const url = supabase.storage.from('room-photos').getPublicUrl(path).data.publicUrl;
+                    await supabase.from('room_photos').insert([{ room_id: room.id, url }]);
+                    loadRoomPhotos();
+                  }
+                  e.currentTarget.value = '';
+                }} />
+            </label>
+            <label className="flex items-center gap-2 px-4 py-2 border-2 border-dashed border-gray-300 rounded-lg hover:border-primary hover:bg-gray-50 transition-all cursor-pointer">
+              <Upload size={20} className="text-gray-600" />
+              <span className="text-sm font-medium text-gray-700">Fotos hochladen</span>
+              <input type="file" accept="image/*" multiple className="hidden"
+                onChange={async (e) => {
+                  const files = Array.from(e.target.files || []);
+                  for (let i = 0; i < files.length; i++) {
+                    const f = files[i];
+                    const path = `${room.id}/${Date.now()}_${i}.png`;
+                    const { error } = await supabase.storage.from('room-photos').upload(path, f, { upsert: true });
+                    if (!error) {
+                      const url = supabase.storage.from('room-photos').getPublicUrl(path).data.publicUrl;
+                      await supabase.from('room_photos').insert([{ room_id: room.id, url }]);
+                    }
+                  }
+                  loadRoomPhotos();
+                  e.currentTarget.value = '';
+                }} />
+            </label>
+          </div>
         </div>
-        {Object.keys(photosByMeasurement).length === 0 ? (
-          <p className="text-gray-500">Noch keine Fotos vorhanden. Fügen Sie beim Erfassen einer Position Fotos hinzu.</p>
+
+        {roomPhotos.length === 0 ? (
+          <p className="text-gray-500">Noch keine Fotos vorhanden.</p>
         ) : (
-          <div className="space-y-6">
-            {measurements.map((m) => (
-              photosByMeasurement[m.id]?.length ? (
-                <div key={m.id}>
-                  <p className="font-medium text-gray-800 mb-2">{m.description || 'Position'}</p>
-                  <div className="grid grid-cols-3 gap-2">
-                    {photosByMeasurement[m.id].map((p) => (
-                      <img key={p.id} src={p.url} alt="Foto" className="w-full h-24 object-cover rounded" />
-                    ))}
-                  </div>
-                </div>
-              ) : null
+          <div className="grid grid-cols-3 gap-2">
+            {roomPhotos.map((p) => (
+              <div key={p.id} className="relative group">
+                <img src={p.url} alt="Foto" className="w-full h-24 object-cover rounded" />
+                <button
+                  onClick={async () => {
+                    await supabase.from('room_photos').delete().eq('id', p.id);
+                    // Storage-Datei optional: nicht zwingend löschen (Public URL bleibt), hier überspringen
+                    loadRoomPhotos();
+                  }}
+                  className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <X size={14} />
+                </button>
+              </div>
             ))}
           </div>
         )}

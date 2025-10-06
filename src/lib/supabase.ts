@@ -77,6 +77,13 @@ export type MeasurementPhoto = {
   created_at: string;
 };
 
+export type RoomPhoto = {
+  id: string;
+  room_id: string;
+  url: string;
+  created_at: string;
+};
+
 export type CategorySetting = {
   id: string;
   category: MeasurementCategory;
