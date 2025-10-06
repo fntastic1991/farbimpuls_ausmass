@@ -19,6 +19,7 @@ export function RoomDetail({ room, onBack }: RoomDetailProps) {
   const [categories, setCategories] = useState<CategorySetting[]>([]);
   const [photosByMeasurement, setPhotosByMeasurement] = useState<Record<string, MeasurementPhoto[]>>({});
   const [roomPhotos, setRoomPhotos] = useState<RoomPhoto[]>([]);
+  const [uploading, setUploading] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
     category: '' as MeasurementCategory,
@@ -70,6 +71,60 @@ export function RoomDetail({ room, onBack }: RoomDetailProps) {
       .eq('room_id', room.id)
       .order('created_at', { ascending: false });
     setRoomPhotos(data || []);
+  }
+
+  async function fileToJpegBlob(file: File, maxDim = 1600): Promise<Blob> {
+    // Lies Datei als DataURL
+    const dataUrl: string = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+
+    // Erzeuge Image und Canvas
+    const img: HTMLImageElement = await new Promise((resolve, reject) => {
+      const i = new Image();
+      i.onload = () => resolve(i);
+      i.onerror = reject;
+      i.src = dataUrl;
+    });
+
+    let { width, height } = img;
+    const scale = Math.min(1, maxDim / Math.max(width, height));
+    width = Math.round(width * scale);
+    height = Math.round(height * scale);
+
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error('Canvas-Kontext nicht verfügbar');
+    ctx.drawImage(img, 0, 0, width, height);
+
+    const jpegBlob: Blob = await new Promise((resolve) => {
+      canvas.toBlob((b) => resolve(b as Blob), 'image/jpeg', 0.85);
+    });
+    return jpegBlob;
+  }
+
+  async function uploadRoomPhoto(file: File) {
+    setUploading(true);
+    try {
+      const jpeg = await fileToJpegBlob(file);
+      const path = `${room.id}/${Date.now()}_${Math.random().toString(36).slice(2)}.jpg`;
+      const { error } = await supabase.storage.from('room-photos').upload(path, jpeg, { upsert: true, contentType: 'image/jpeg' });
+      if (error) throw error;
+      const url = supabase.storage.from('room-photos').getPublicUrl(path).data.publicUrl;
+      const { error: insertErr } = await supabase.from('room_photos').insert([{ room_id: room.id, url }]);
+      if (insertErr) throw insertErr;
+      await loadRoomPhotos();
+    } catch (err: any) {
+      console.error('Upload-Fehler:', err);
+      alert('Foto-Upload fehlgeschlagen: ' + (err?.message || 'Unbekannter Fehler. Prüfe Supabase-Bucket/Tabelle.'));
+    } finally {
+      setUploading(false);
+    }
   }
 
   async function loadMeasurements() {
@@ -492,13 +547,7 @@ export function RoomDetail({ room, onBack }: RoomDetailProps) {
                 onChange={async (e) => {
                   const file = e.target.files?.[0];
                   if (!file) return;
-                  const path = `${room.id}/${Date.now()}_cam.png`;
-                  const { error } = await supabase.storage.from('room-photos').upload(path, file, { upsert: true });
-                  if (!error) {
-                    const url = supabase.storage.from('room-photos').getPublicUrl(path).data.publicUrl;
-                    await supabase.from('room_photos').insert([{ room_id: room.id, url }]);
-                    loadRoomPhotos();
-                  }
+                  await uploadRoomPhoto(file);
                   e.currentTarget.value = '';
                 }} />
             </label>
@@ -508,22 +557,16 @@ export function RoomDetail({ room, onBack }: RoomDetailProps) {
               <input type="file" accept="image/*" multiple className="hidden"
                 onChange={async (e) => {
                   const files = Array.from(e.target.files || []);
-                  for (let i = 0; i < files.length; i++) {
-                    const f = files[i];
-                    const path = `${room.id}/${Date.now()}_${i}.png`;
-                    const { error } = await supabase.storage.from('room-photos').upload(path, f, { upsert: true });
-                    if (!error) {
-                      const url = supabase.storage.from('room-photos').getPublicUrl(path).data.publicUrl;
-                      await supabase.from('room_photos').insert([{ room_id: room.id, url }]);
-                    }
+                  for (const f of files) {
+                    await uploadRoomPhoto(f);
                   }
-                  loadRoomPhotos();
                   e.currentTarget.value = '';
                 }} />
             </label>
           </div>
         </div>
 
+        {uploading && <p className="text-sm text-gray-500 mb-2">Lade Fotos hoch…</p>}
         {roomPhotos.length === 0 ? (
           <p className="text-gray-500">Noch keine Fotos vorhanden.</p>
         ) : (
