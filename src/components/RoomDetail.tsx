@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { ArrowLeft, Plus, Trash2, Calculator, Camera, Upload, X } from 'lucide-react';
-import { supabase, type Room, type Measurement, type MeasurementCategory, type MeasurementUnit, type CategorySetting } from '../lib/supabase';
+import { supabase, type Room, type Measurement, type MeasurementCategory, type MeasurementUnit, type CategorySetting, type MeasurementPhoto } from '../lib/supabase';
 
 interface RoomDetailProps {
   room: Room;
@@ -17,6 +17,7 @@ const unitLabels: Record<MeasurementUnit, string> = {
 export function RoomDetail({ room, onBack }: RoomDetailProps) {
   const [measurements, setMeasurements] = useState<Measurement[]>([]);
   const [categories, setCategories] = useState<CategorySetting[]>([]);
+  const [photosByMeasurement, setPhotosByMeasurement] = useState<Record<string, MeasurementPhoto[]>>({});
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
     category: '' as MeasurementCategory,
@@ -70,6 +71,21 @@ export function RoomDetail({ room, onBack }: RoomDetailProps) {
 
       if (error) throw error;
       setMeasurements(data || []);
+      const ids = (data || []).map(m => m.id);
+      if (ids.length) {
+        const { data: photoRows } = await supabase
+          .from('measurement_photos')
+          .select('*')
+          .in('measurement_id', ids);
+        const map: Record<string, MeasurementPhoto[]> = {};
+        (photoRows || []).forEach(p => {
+          if (!map[p.measurement_id]) map[p.measurement_id] = [];
+          map[p.measurement_id].push(p as any);
+        });
+        setPhotosByMeasurement(map);
+      } else {
+        setPhotosByMeasurement({});
+      }
     } catch (error) {
       console.error('Fehler beim Laden der Ausmasse:', error);
     } finally {
@@ -115,7 +131,7 @@ export function RoomDetail({ room, onBack }: RoomDetailProps) {
     }
 
     try {
-      const { error } = await supabase
+      const { data: inserted, error } = await supabase
         .from('measurements')
         .insert([{
           room_id: room.id,
@@ -127,9 +143,25 @@ export function RoomDetail({ room, onBack }: RoomDetailProps) {
           height: formData.height ? parseFloat(formData.height) : null,
           quantity,
           notes: formData.notes
-        }]);
+        }])
+        .select('*')
+        .single();
 
       if (error) throw error;
+
+      // Upload photos to storage and store URLs
+      if (formData.photos.length && inserted?.id) {
+        for (const [idx, base64] of formData.photos.entries()) {
+          const res = await fetch(base64);
+          const blob = await res.blob();
+          const path = `${inserted.id}/${Date.now()}_${idx}.png`;
+          const upload = await supabase.storage.from('measurement-photos').upload(path, blob, { upsert: true, contentType: 'image/png' });
+          if (!upload.error) {
+            const url = supabase.storage.from('measurement-photos').getPublicUrl(path).data.publicUrl;
+            await supabase.from('measurement_photos').insert([{ measurement_id: inserted.id, url }]);
+          }
+        }
+      }
 
       setFormData({
         category: categories.length > 0 ? categories[0].category : '',
@@ -189,7 +221,7 @@ export function RoomDetail({ room, onBack }: RoomDetailProps) {
       </div>
 
       <div className="bg-white rounded-lg shadow p-6">
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
           <h2 className="text-2xl font-bold text-gray-800">Positionen</h2>
           <button
             onClick={() => setShowForm(!showForm)}
@@ -202,7 +234,7 @@ export function RoomDetail({ room, onBack }: RoomDetailProps) {
 
         {showForm && (
           <form onSubmit={handleSubmit} className="mb-6 p-6 bg-gray-50 rounded-lg space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Kategorie *
@@ -253,7 +285,7 @@ export function RoomDetail({ room, onBack }: RoomDetailProps) {
               />
             </div>
 
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {formData.unit !== 'stk' && formData.unit !== 'pauschal' && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -459,7 +491,7 @@ export function RoomDetail({ room, onBack }: RoomDetailProps) {
                   </span>
                 </h3>
                 <div className="space-y-2">
-                  {items.map((item) => (
+        {items.map((item) => (
                     <div
                       key={item.id}
                       className="flex items-start justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
@@ -474,6 +506,13 @@ export function RoomDetail({ room, onBack }: RoomDetailProps) {
                             = {item.quantity} {unitLabels[item.unit]}
                           </span>
                         </div>
+              {photosByMeasurement[item.id]?.length ? (
+                <div className="mt-3 grid grid-cols-3 gap-2">
+                  {photosByMeasurement[item.id].map((p) => (
+                    <img key={p.id} src={p.url} alt="Foto" className="w-full h-20 object-cover rounded" />
+                  ))}
+                </div>
+              ) : null}
                         {item.notes && (
                           <p className="text-sm text-gray-500 mt-1">{item.notes}</p>
                         )}

@@ -178,7 +178,7 @@ export function ProjectDetail({ project, onBack, onEdit, onUpdate }: ProjectDeta
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <button
           onClick={onBack}
           className="flex items-center gap-2 text-gray-600 hover:text-gray-800"
@@ -187,7 +187,7 @@ export function ProjectDetail({ project, onBack, onEdit, onUpdate }: ProjectDeta
           Zurück
         </button>
 
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <button
             onClick={() => setShowSummary(true)}
             className="flex items-center gap-2 bg-accent text-black px-4 py-2 rounded-lg hover:bg-accent-dark transition-colors"
@@ -245,7 +245,7 @@ export function ProjectDetail({ project, onBack, onEdit, onUpdate }: ProjectDeta
                 <label className="block text-sm font-semibold text-gray-800 mb-3">
                   Raumtyp auswählen
                 </label>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                   {predefinedRooms.map((room) => {
                     const Icon = room.icon;
                     const isSelected = selectedRoomTypes.includes(room.name);

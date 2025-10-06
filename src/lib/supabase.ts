@@ -70,6 +70,13 @@ export type Measurement = {
   created_at: string;
 };
 
+export type MeasurementPhoto = {
+  id: string;
+  measurement_id: string;
+  url: string;
+  created_at: string;
+};
+
 export type CategorySetting = {
   id: string;
   category: MeasurementCategory;
