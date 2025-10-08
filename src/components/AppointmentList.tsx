@@ -98,11 +98,11 @@ export function AppointmentList({ onSelectAppointment, onNewAppointment }: Appoi
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <h2 className="text-2xl font-bold text-gray-800">Termine</h2>
         <button
           onClick={onNewAppointment}
-          className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark transition-colors"
+          className="btn-primary"
         >
           <Plus size={20} />
           Neuer Termin
@@ -126,7 +126,7 @@ export function AppointmentList({ onSelectAppointment, onNewAppointment }: Appoi
             <div
               key={appointment.id}
               onClick={() => onSelectAppointment(appointment)}
-              className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow cursor-pointer p-6"
+              className="card hover:shadow-xl transition-shadow cursor-pointer p-6"
             >
               <div className="flex justify-between items-start mb-3">
                 <div className="flex-1">

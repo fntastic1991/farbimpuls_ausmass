@@ -109,9 +109,9 @@ export function AppointmentForm({ appointment, onClose, onSave }: AppointmentFor
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="sticky top-0 bg-white/80 backdrop-blur border-b px-6 py-4 flex justify-between items-center rounded-t-2xl">
           <h2 className="text-2xl font-bold text-gray-800">
             {appointment ? 'Termin bearbeiten' : 'Neuer Termin'}
           </h2>
@@ -133,7 +133,7 @@ export function AppointmentForm({ appointment, onClose, onSave }: AppointmentFor
               required
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="input"
               placeholder="z.B. Ausmass vor Ort"
             />
           </div>
@@ -148,7 +148,7 @@ export function AppointmentForm({ appointment, onClose, onSave }: AppointmentFor
                 required
                 value={formData.appointment_date}
                 onChange={(e) => setFormData({ ...formData, appointment_date: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="input"
               />
             </div>
 
@@ -160,7 +160,7 @@ export function AppointmentForm({ appointment, onClose, onSave }: AppointmentFor
                 type="time"
                 value={formData.appointment_time}
                 onChange={(e) => setFormData({ ...formData, appointment_time: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="input"
               />
             </div>
           </div>
@@ -176,7 +176,7 @@ export function AppointmentForm({ appointment, onClose, onSave }: AppointmentFor
                 step="15"
                 value={formData.duration_minutes}
                 onChange={(e) => setFormData({ ...formData, duration_minutes: parseInt(e.target.value) || 60 })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="input"
               />
             </div>
 
@@ -187,7 +187,7 @@ export function AppointmentForm({ appointment, onClose, onSave }: AppointmentFor
               <select
                 value={formData.status}
                 onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="input bg-white"
               >
                 <option value="geplant">Geplant</option>
                 <option value="bestaetigt">Bestätigt</option>
@@ -204,7 +204,7 @@ export function AppointmentForm({ appointment, onClose, onSave }: AppointmentFor
             <select
               value={formData.customer_id}
               onChange={(e) => setFormData({ ...formData, customer_id: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="input bg-white"
             >
               <option value="">Kein Kunde ausgewählt</option>
               {customers.map((customer) => (
@@ -222,7 +222,7 @@ export function AppointmentForm({ appointment, onClose, onSave }: AppointmentFor
             <select
               value={formData.project_id}
               onChange={(e) => setFormData({ ...formData, project_id: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="input bg-white"
             >
               <option value="">Kein Projekt ausgewählt</option>
               {projects.map((project) => (
@@ -241,7 +241,7 @@ export function AppointmentForm({ appointment, onClose, onSave }: AppointmentFor
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               rows={4}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="input"
               placeholder="Zusätzliche Informationen zum Termin..."
             />
           </div>
@@ -250,7 +250,7 @@ export function AppointmentForm({ appointment, onClose, onSave }: AppointmentFor
             <button
               type="submit"
               disabled={saving}
-              className="flex-1 flex items-center justify-center gap-2 bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary-dark transition-colors disabled:opacity-50"
+              className="flex-1 btn-primary justify-center py-3 disabled:opacity-50"
             >
               <Save size={20} />
               {saving ? 'Speichere...' : 'Speichern'}
@@ -260,7 +260,7 @@ export function AppointmentForm({ appointment, onClose, onSave }: AppointmentFor
                 type="button"
                 onClick={handleDelete}
                 disabled={deleting}
-                className="flex items-center justify-center gap-2 bg-secondary text-white px-6 py-3 rounded-lg hover:bg-secondary-dark transition-colors disabled:opacity-50"
+                className="inline-flex items-center justify-center gap-2 bg-secondary text-white px-6 py-3 rounded-lg hover:bg-secondary-dark transition-colors disabled:opacity-50"
               >
                 <Trash2 size={20} />
                 {deleting ? 'Lösche...' : 'Löschen'}

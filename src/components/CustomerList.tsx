@@ -80,20 +80,20 @@ export function CustomerList({ onSelectCustomer, onNewCustomer }: CustomerListPr
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <h2 className="text-2xl font-bold text-gray-800">Kunden</h2>
         <div className="flex gap-3">
           <button
             onClick={importFromBexio}
             disabled={importing}
-            className="flex items-center gap-2 bg-accent text-gray-800 px-4 py-2 rounded-lg hover:bg-accent-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent text-gray-800 hover:bg-emerald-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Download size={20} />
             {importing ? 'Importiere...' : 'Von Bexio importieren'}
           </button>
           <button
             onClick={onNewCustomer}
-            className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark transition-colors"
+            className="btn-primary rounded-full"
           >
             <Plus size={20} />
             Neuer Kunde
@@ -128,7 +128,7 @@ export function CustomerList({ onSelectCustomer, onNewCustomer }: CustomerListPr
             <div
               key={customer.id}
               onClick={() => onSelectCustomer(customer)}
-              className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow cursor-pointer p-6"
+              className="card hover:shadow-xl transition-shadow cursor-pointer p-6"
             >
               <div className="flex justify-between items-start mb-3">
                 <div>
