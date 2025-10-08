@@ -17,14 +17,17 @@ export function Navigation({ activeView, onNavigate }: NavigationProps) {
   return (
     <>
       {/* Desktop / Tablet Topbar */}
-      <nav className="hidden sm:block app-gradient border-b border-gray-200">
+      <nav className="hidden sm:block sticky top-0 z-40 bg-white/70 backdrop-blur border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-6 py-3">
-            <img
-              src="https://i.postimg.cc/Vsqw5gDN/logo-maler.png"
-              alt="Farbimpuls Logo"
-              className="h-10 w-auto"
-            />
+            <div className="flex items-center gap-3">
+              <img
+                src="https://i.postimg.cc/Vsqw5gDN/logo-maler.png"
+                alt="Farbimpuls Logo"
+                className="h-9 w-auto"
+              />
+              <span className="font-semibold text-gray-800 tracking-tight">Farbimpuls</span>
+            </div>
             <div className="flex gap-2 flex-1">
               {navItems.map((item) => {
                 const Icon = item.icon;
@@ -33,8 +36,8 @@ export function Navigation({ activeView, onNavigate }: NavigationProps) {
                   <button
                     key={item.id}
                     onClick={() => onNavigate(item.id)}
-                    className={`px-4 py-2 rounded-xl font-medium text-sm transition-colors
-                      ${isActive ? 'bg-white text-primary shadow' : 'text-gray-700 hover:text-black hover:bg-white/70'}`}
+                    className={`px-4 py-2 rounded-full font-medium text-sm transition-all
+                      ${isActive ? 'bg-primary text-white shadow' : 'text-gray-700 hover:text-primary hover:bg-primary/10'}`}
                   >
                     <span className="inline-flex items-center gap-2"><Icon size={18} />{item.label}</span>
                   </button>
@@ -42,7 +45,7 @@ export function Navigation({ activeView, onNavigate }: NavigationProps) {
               })}
               <div className="flex-1" />
               <button onClick={()=>supabase.auth.signOut()}
-                className="px-3 py-2 rounded-xl text-gray-700 hover:text-black hover:bg-white/70 flex items-center gap-2">
+                className="px-3 py-2 rounded-full text-gray-700 hover:text-primary hover:bg-primary/10 flex items-center gap-2">
                 <LogOut size={18} />
                 <span className="hidden md:inline">Logout</span>
               </button>
@@ -52,22 +55,25 @@ export function Navigation({ activeView, onNavigate }: NavigationProps) {
       </nav>
 
       {/* Mobile Bottom Bar */}
-      <nav className="sm:hidden fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur border-t border-gray-200 z-40" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
-        <div className="grid grid-cols-4">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = activeView === item.id;
-            return (
-              <button
-                key={item.id}
-                onClick={() => onNavigate(item.id)}
-                className={`flex flex-col items-center justify-center py-3 text-xs ${isActive ? 'text-primary' : 'text-gray-600'}`}
-              >
-                <Icon size={22} />
-                <span className="mt-1">{item.label}</span>
-              </button>
-            );
-          })}
+      <nav className="sm:hidden fixed bottom-0 inset-x-0 z-40">
+        <div className="mx-auto max-w-md px-4" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+          <div className="grid grid-cols-4 bg-white/90 backdrop-blur border border-gray-200 rounded-2xl shadow-lg overflow-hidden">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = activeView === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => onNavigate(item.id)}
+                  className={`flex flex-col items-center justify-center py-2 text-[11px] ${isActive ? 'text-primary' : 'text-gray-600'}`}
+                >
+                  <Icon size={22} />
+                  <span className="mt-0.5">{item.label}</span>
+                  <span className={`mt-1 h-1 w-6 rounded-full ${isActive ? 'bg-primary' : 'bg-transparent'}`} />
+                </button>
+              );
+            })}
+          </div>
         </div>
       </nav>
     </>
