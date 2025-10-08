@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Save, AlertCircle, Plus, Trash2 } from 'lucide-react';
+import { Save, AlertCircle, Plus, Trash2, ChevronRight, Search } from 'lucide-react';
 import { supabase, type CategorySetting } from '../lib/supabase';
 
 export function Settings() {
@@ -9,6 +9,8 @@ export function Settings() {
   const [saving, setSaving] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [showNewCategory, setShowNewCategory] = useState(false);
+  const [openIds, setOpenIds] = useState<Set<string>>(new Set());
+  const [searchTerm, setSearchTerm] = useState('');
   const taxOptions = [8.1, 0];
   function parseDecimal(value: string): number {
     const cleaned = value.replace(',', '.');
@@ -27,6 +29,19 @@ export function Settings() {
   useEffect(() => {
     loadSettings();
   }, [activeScope]);
+
+  // Nach Laden/Wechsel: alle Kategorien standardmäßig ZU
+  useEffect(() => {
+    setOpenIds(new Set());
+  }, [settings, activeScope]);
+
+  function toggleOpen(id: string) {
+    setOpenIds((prev) => {
+      const key = String(id);
+      // Nur eine Kategorie gleichzeitig offen
+      return prev.has(key) ? new Set() : new Set([key]);
+    });
+  }
 
   async function loadSettings() {
     try {
@@ -346,6 +361,28 @@ export function Settings() {
           </p>
         </div>
 
+        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="relative w-full sm:max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Kategorien suchen..."
+              className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+            />
+          </div>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setOpenIds(new Set())}
+              className="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+            >
+              Alle zuklappen
+            </button>
+          </div>
+        </div>
+
         {settings.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-gray-500 mb-4">Noch keine Kategorien vorhanden</p>
@@ -359,106 +396,131 @@ export function Settings() {
           </div>
         ) : (
           <div className="space-y-6">
-            {settings.map((setting) => (
-              <div key={setting.id} className="border border-gray-200 rounded-lg p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-gray-800">
-                    {setting.category}
-                  </h3>
-                  <div className="flex items-center gap-4">
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={setting.is_active}
-                        onChange={(e) => updateSetting(setting.id, 'is_active', e.target.checked)}
-                        className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-2 focus:ring-primary"
-                      />
-                      <span className="text-sm text-gray-600">Aktiv</span>
-                    </label>
+            {settings
+              .filter((s) => {
+                const t = searchTerm.trim().toLowerCase();
+                if (!t) return true;
+                return (
+                  (s.category || '').toLowerCase().includes(t) ||
+                  (s.offer_title || '').toLowerCase().includes(t)
+                );
+              })
+              .map((setting) => {
+              const idStr = String(setting.id);
+              const isOpen = openIds.has(idStr);
+              return (
+                <div key={setting.id} className="border border-gray-200 rounded-lg p-6">
+                  <div className="flex items-center justify-between mb-4">
                     <button
-                      onClick={() => handleDelete(setting.id)}
-                      className="text-red-600 hover:text-red-700 transition-colors"
-                      title="Kategorie löschen"
+                      type="button"
+                      onClick={() => toggleOpen(idStr)}
+                      className="flex items-center gap-2 cursor-pointer select-none"
+                      aria-expanded={isOpen}
+                      aria-controls={`category-panel-${idStr}`}
                     >
-                      <Trash2 size={18} />
+                      <ChevronRight className={`transition-transform transform ${isOpen ? 'rotate-90' : ''}`} size={18} />
+                      <h3 className="text-lg font-semibold text-gray-800">
+                        {setting.category}
+                      </h3>
                     </button>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Titel für Bexio-Offerte *
-                    </label>
-                    <input
-                      type="text"
-                      value={setting.offer_title}
-                      onChange={(e) => updateSetting(setting.id, 'offer_title', e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                      placeholder="z.B. Malerarbeiten Wandflächen"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Beschreibung (optional)
-                    </label>
-                    <textarea
-                      value={setting.offer_description || ''}
-                      onChange={(e) => updateSetting(setting.id, 'offer_description', e.target.value)}
-                      rows={3}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                      placeholder="Detaillierte Beschreibung für die Offerte..."
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        MwSt-Satz *
+                    <div className="flex items-center gap-4">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={setting.is_active}
+                          onChange={(e) => updateSetting(setting.id, 'is_active', e.target.checked)}
+                          className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-2 focus:ring-primary"
+                        />
+                        <span className="text-sm text-gray-600">Aktiv</span>
                       </label>
-                      <select
-                        value={setting.tax_rate}
-                        onChange={(e) => updateSetting(setting.id, 'tax_rate', parseFloat(e.target.value) || 0)}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white"
+                      <button
+                        type="button"
+                        onClick={() => handleDelete(setting.id)}
+                        className="text-red-600 hover:text-red-700 transition-colors"
+                        title="Kategorie löschen"
                       >
-                        {taxOptions.map((o) => (
-                          <option key={o} value={o}>{o.toFixed(1)} %</option>
-                        ))}
-                      </select>
-                      <p className="text-xs text-gray-500 mt-1">Entspricht den in Bexio verfügbaren Sätzen (z. B. 8.1 %, 0 %).</p>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Einheitspreis (CHF) *
-                      </label>
-                      <input
-                        type="text"
-                        inputMode="decimal"
-                        value={setting.unit_price}
-                        onChange={(e) => updateSetting(setting.id, 'unit_price', parseDecimal(e.target.value))}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                        placeholder="0.00"
-                      />
+                        <Trash2 size={18} />
+                      </button>
                     </div>
                   </div>
 
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                    <span className="text-xs text-gray-500">Bereich: {activeScope}</span>
-                    <button
-                      onClick={() => handleSave(setting)}
-                      disabled={saving}
-                      className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark transition-colors disabled:opacity-50"
-                    >
-                      <Save size={18} />
-                      Speichern
-                    </button>
-                  </div>
-                  {/* Bexio-Vorschau entfernt, da nicht benötigt */}
+                  {isOpen && (
+                    <div id={`category-panel-${idStr}`} className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Titel für Bexio-Offerte *
+                        </label>
+                        <input
+                          type="text"
+                          value={setting.offer_title}
+                          onChange={(e) => updateSetting(setting.id, 'offer_title', e.target.value)}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                          placeholder="z.B. Malerarbeiten Wandflächen"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Beschreibung (optional)
+                        </label>
+                        <textarea
+                          value={setting.offer_description || ''}
+                          onChange={(e) => updateSetting(setting.id, 'offer_description', e.target.value)}
+                          rows={3}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                          placeholder="Detaillierte Beschreibung für die Offerte..."
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            MwSt-Satz *
+                          </label>
+                          <select
+                            value={setting.tax_rate}
+                            onChange={(e) => updateSetting(setting.id, 'tax_rate', parseFloat(e.target.value) || 0)}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white"
+                          >
+                            {taxOptions.map((o) => (
+                              <option key={o} value={o}>{o.toFixed(1)} %</option>
+                            ))}
+                          </select>
+                          <p className="text-xs text-gray-500 mt-1">Entspricht den in Bexio verfügbaren Sätzen (z. B. 8.1 %, 0 %).</p>
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Einheitspreis (CHF) *
+                          </label>
+                          <input
+                            type="text"
+                            inputMode="decimal"
+                            value={setting.unit_price}
+                            onChange={(e) => updateSetting(setting.id, 'unit_price', parseDecimal(e.target.value))}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                            placeholder="0.00"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                        <span className="text-xs text-gray-500">Bereich: {activeScope}</span>
+                        <button
+                          onClick={() => handleSave(setting)}
+                          disabled={saving}
+                          className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark transition-colors disabled:opacity-50"
+                        >
+                          <Save size={18} />
+                          Speichern
+                        </button>
+                      </div>
+                      {/* Bexio-Vorschau entfernt, da nicht benötigt */}
+                    </div>
+                  )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
