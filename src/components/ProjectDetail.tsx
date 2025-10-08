@@ -19,6 +19,8 @@ export function ProjectDetail({ project, onBack, onEdit, onUpdate }: ProjectDeta
   const [customRoomName, setCustomRoomName] = useState('');
   const [showSummary, setShowSummary] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [showDuplicateDialog, setShowDuplicateDialog] = useState(false);
+  const [duplicateWithPositions, setDuplicateWithPositions] = useState(true);
 
   const scope = (project as any).scope === 'aussen' ? 'aussen' : 'innen';
   const predefinedRooms = scope === 'aussen'
@@ -154,7 +156,7 @@ export function ProjectDetail({ project, onBack, onEdit, onUpdate }: ProjectDeta
     }
   }
 
-  async function handleDuplicateProject() {
+  async function handleDuplicateProject(withPositions: boolean) {
     try {
       // Neues Projekt anlegen (Kopie)
       const base = {
@@ -174,20 +176,67 @@ export function ProjectDetail({ project, onBack, onEdit, onUpdate }: ProjectDeta
         .single();
       if (projErr) throw projErr;
 
-      // Räume kopieren (ohne measurements, nur Struktur)
+      // Räume kopieren (Struktur) und IDs der neuen Räume zurückgeben
+      let originalRoomIdToRoom: Record<string, Room> = {};
+      rooms.forEach((r) => { originalRoomIdToRoom[r.id] = r; });
+      let newRoomsByKey: Record<string, string> = {};
       if (rooms.length > 0) {
         const payload = rooms.map((r) => ({
           project_id: inserted.id,
           name: r.name,
           sort_order: r.sort_order,
         }));
-        const { error: roomsErr } = await supabase.from('rooms').insert(payload);
+        const { data: newRooms, error: roomsErr } = await supabase.from('rooms').insert(payload).select('*');
         if (roomsErr) throw roomsErr;
+        // Key = name|sort_order zur Zuordnung
+        (newRooms || []).forEach((nr: any) => {
+          const key = `${nr.name}|${nr.sort_order ?? ''}`;
+          newRoomsByKey[key] = nr.id;
+        });
+      }
+
+      // Optional Messpositionen mitkopieren
+      if (withPositions && rooms.length > 0) {
+        const originalRoomIds = rooms.map((r) => r.id);
+        const { data: measurements, error: mErr } = await supabase
+          .from('measurements')
+          .select('*')
+          .in('room_id', originalRoomIds);
+        if (mErr) throw mErr;
+
+        if (measurements && measurements.length > 0) {
+          // Mappe jede Messung auf neuen room_id über (name, sort_order)
+          const payload = measurements
+            .map((m: any) => {
+              const origRoom = originalRoomIdToRoom[m.room_id];
+              if (!origRoom) return null;
+              const key = `${origRoom.name}|${origRoom.sort_order ?? ''}`;
+              const targetRoomId = newRoomsByKey[key];
+              if (!targetRoomId) return null;
+              return {
+                room_id: targetRoomId,
+                category: m.category,
+                description: m.description,
+                quantity: m.quantity,
+                unit: m.unit,
+                length: m.length,
+                width: m.width,
+                height: m.height,
+                notes: m.notes,
+              };
+            })
+            .filter(Boolean) as any[];
+
+          if (payload.length > 0) {
+            const { error: insErr } = await supabase.from('measurements').insert(payload);
+            if (insErr) throw insErr;
+          }
+        }
       }
 
       onUpdate();
       onBack();
-      alert('Projekt wurde dupliziert.');
+      alert(withPositions ? 'Projekt mit Positionen dupliziert.' : 'Projekt dupliziert.');
     } catch (error) {
       console.error('Duplizieren fehlgeschlagen:', error);
       alert('Duplizieren fehlgeschlagen');
@@ -236,7 +285,7 @@ export function ProjectDetail({ project, onBack, onEdit, onUpdate }: ProjectDeta
             Zusammenfassung
           </button>
           <button
-            onClick={handleDuplicateProject}
+            onClick={() => setShowDuplicateDialog(true)}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gray-900 text-white hover:bg-black transition-colors"
           >
             <Copy size={18} />
@@ -258,6 +307,44 @@ export function ProjectDetail({ project, onBack, onEdit, onUpdate }: ProjectDeta
           </button>
         </div>
       </div>
+
+  {showDuplicateDialog && (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+        <div className="px-6 py-4 border-b rounded-t-2xl">
+          <h3 className="text-xl font-semibold text-gray-800">Projekt duplizieren</h3>
+        </div>
+        <div className="p-6 space-y-4">
+          <p className="text-gray-700">Möchtest du die Messpositionen (Ausmasse) ebenfalls mitkopieren?</p>
+          <label className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={duplicateWithPositions}
+              onChange={(e) => setDuplicateWithPositions(e.target.checked)}
+              className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-2 focus:ring-primary"
+            />
+            <span>Positionen mitkopieren</span>
+          </label>
+        </div>
+        <div className="px-6 py-4 border-t flex justify-end gap-2">
+          <button
+            type="button"
+            onClick={() => setShowDuplicateDialog(false)}
+            className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+          >
+            Abbrechen
+          </button>
+          <button
+            type="button"
+            onClick={async () => { setShowDuplicateDialog(false); await handleDuplicateProject(duplicateWithPositions); }}
+            className="btn-primary"
+          >
+            Duplizieren
+          </button>
+        </div>
+      </div>
+    </div>
+  )}
 
       <div className="card p-6">
         <h1 className="text-3xl font-bold text-gray-800 mb-4">{project.customer_name}</h1>
