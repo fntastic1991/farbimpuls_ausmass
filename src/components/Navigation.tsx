@@ -26,7 +26,6 @@ export function Navigation({ activeView, onNavigate }: NavigationProps) {
                 alt="Farbimpuls Logo"
                 className="h-9 w-auto"
               />
-              <span className="font-semibold text-gray-800 tracking-tight">Farbimpuls</span>
             </div>
             <div className="flex gap-2 flex-1">
               {navItems.map((item) => {
