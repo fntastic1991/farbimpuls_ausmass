@@ -282,17 +282,17 @@ export function RoomDetail({ room, onBack }: RoomDetailProps) {
         </button>
       </div>
 
-      <div className="bg-white rounded-lg shadow p-6">
+      <div className="card p-6">
         <h1 className="text-3xl font-bold text-gray-800 mb-2">{room.name}</h1>
         <p className="text-gray-600">Ausmass erfassen</p>
       </div>
 
-      <div className="bg-white rounded-lg shadow p-6">
+      <div className="card p-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
           <h2 className="text-2xl font-bold text-gray-800">Positionen</h2>
           <button
             onClick={() => setShowForm(!showForm)}
-            className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark transition-colors"
+            className="btn-primary rounded-full"
           >
             <Plus size={20} />
             Position hinzufügen
@@ -300,7 +300,7 @@ export function RoomDetail({ room, onBack }: RoomDetailProps) {
         </div>
 
         {showForm && (
-          <form onSubmit={handleSubmit} className="mb-6 p-6 bg-gray-50 rounded-lg space-y-4">
+          <form onSubmit={handleSubmit} className="mb-6 p-6 bg-gray-50 rounded-xl border border-gray-200 space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -309,7 +309,7 @@ export function RoomDetail({ room, onBack }: RoomDetailProps) {
                 <select
                   value={formData.category}
                   onChange={(e) => setFormData({ ...formData, category: e.target.value as MeasurementCategory })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                  className="input bg-white"
                   required
                 >
                   {categories.length === 0 ? (
@@ -329,7 +329,7 @@ export function RoomDetail({ room, onBack }: RoomDetailProps) {
                 <select
                   value={formData.unit}
                   onChange={(e) => setFormData({ ...formData, unit: e.target.value as MeasurementUnit })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                  className="input bg-white"
                 >
                   <option value="m2">m² (Quadratmeter)</option>
                   <option value="lfm">lfm (Laufmeter)</option>
@@ -347,7 +347,7 @@ export function RoomDetail({ room, onBack }: RoomDetailProps) {
                 type="text"
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="input"
                 placeholder="z.B. Nordwand, Hauptfenster"
               />
             </div>
@@ -363,7 +363,7 @@ export function RoomDetail({ room, onBack }: RoomDetailProps) {
                     step="0.01"
                     value={formData.length}
                     onChange={(e) => setFormData({ ...formData, length: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                    className="input"
                     placeholder="0.00"
                   />
                 </div>
@@ -379,7 +379,7 @@ export function RoomDetail({ room, onBack }: RoomDetailProps) {
                     step="0.01"
                     value={formData.width}
                     onChange={(e) => setFormData({ ...formData, width: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                    className="input"
                     placeholder="0.00"
                   />
                 </div>
@@ -395,7 +395,7 @@ export function RoomDetail({ room, onBack }: RoomDetailProps) {
                     step="0.01"
                     value={formData.height}
                     onChange={(e) => setFormData({ ...formData, height: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                    className="input"
                     placeholder="0.00"
                   />
                 </div>
@@ -410,7 +410,7 @@ export function RoomDetail({ room, onBack }: RoomDetailProps) {
                     type="text"
                     value={formData.quantity}
                     onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                    className="input"
                     placeholder="0"
                     required
                   />
@@ -427,7 +427,7 @@ export function RoomDetail({ room, onBack }: RoomDetailProps) {
                     step="0.01"
                     value={formData.quantity}
                     onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                    className="input"
                     placeholder="0.00"
                     required
                   />
@@ -454,7 +454,7 @@ export function RoomDetail({ room, onBack }: RoomDetailProps) {
                 value={formData.notes}
                 onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                 rows={2}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="input"
                 placeholder="Zusätzliche Informationen..."
               />
             </div>
@@ -462,7 +462,7 @@ export function RoomDetail({ room, onBack }: RoomDetailProps) {
             <div className="flex gap-3">
               <button
                 type="submit"
-                className="flex-1 bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary-dark transition-colors"
+                className="flex-1 btn-primary justify-center py-3"
               >
                 Hinzufügen
               </button>
@@ -537,7 +537,7 @@ export function RoomDetail({ room, onBack }: RoomDetailProps) {
       </div>
 
       {/* Fotos-Galerie separat */}
-      <div className="bg-white rounded-lg shadow p-6">
+      <div className="card p-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
           <h2 className="text-2xl font-bold text-gray-800">Fotos</h2>
           <div className="flex gap-2">
