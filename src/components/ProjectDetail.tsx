@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, CreditCard as Edit, Trash2, Plus, FileText, Home, BedDouble, DoorOpen, Navigation, ChefHat, Bath, Archive, Warehouse, Package } from 'lucide-react';
+import { ArrowLeft, CreditCard as Edit, Trash2, Plus, FileText, Home, BedDouble, DoorOpen, Navigation, ChefHat, Bath, Archive, Warehouse, Package, Copy } from 'lucide-react';
 import { supabase, type Project, type Room } from '../lib/supabase';
 import { RoomDetail } from './RoomDetail';
 import { MeasurementSummary } from './MeasurementSummary';
@@ -154,6 +154,46 @@ export function ProjectDetail({ project, onBack, onEdit, onUpdate }: ProjectDeta
     }
   }
 
+  async function handleDuplicateProject() {
+    try {
+      // Neues Projekt anlegen (Kopie)
+      const base = {
+        customer_id: project.customer_id,
+        customer_name: `${project.customer_name} (Kopie)`,
+        address: project.address,
+        status: project.status,
+        appointment_date: project.appointment_date,
+        notes: project.notes,
+        scope: (project as any).scope || null,
+      } as any;
+
+      const { data: inserted, error: projErr } = await supabase
+        .from('projects')
+        .insert([base])
+        .select('*')
+        .single();
+      if (projErr) throw projErr;
+
+      // Räume kopieren (ohne measurements, nur Struktur)
+      if (rooms.length > 0) {
+        const payload = rooms.map((r) => ({
+          project_id: inserted.id,
+          name: r.name,
+          sort_order: r.sort_order,
+        }));
+        const { error: roomsErr } = await supabase.from('rooms').insert(payload);
+        if (roomsErr) throw roomsErr;
+      }
+
+      onUpdate();
+      onBack();
+      alert('Projekt wurde dupliziert.');
+    } catch (error) {
+      console.error('Duplizieren fehlgeschlagen:', error);
+      alert('Duplizieren fehlgeschlagen');
+    }
+  }
+
   if (selectedRoom) {
     return (
       <RoomDetail
@@ -194,6 +234,13 @@ export function ProjectDetail({ project, onBack, onEdit, onUpdate }: ProjectDeta
           >
             <FileText size={20} />
             Zusammenfassung
+          </button>
+          <button
+            onClick={handleDuplicateProject}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gray-900 text-white hover:bg-black transition-colors"
+          >
+            <Copy size={18} />
+            Als Vorlage duplizieren
           </button>
           <button
             onClick={onEdit}
