@@ -5,20 +5,23 @@ export default {
     extend: {
       colors: {
         primary: {
-          DEFAULT: '#336d78',
-          dark: '#2a5960',
-          light: '#4a8793',
+          DEFAULT: '#0e7490', // cyan-700
+          dark: '#155e75',
+          light: '#22b8cf',
         },
         secondary: {
-          DEFAULT: '#c4574e',
-          dark: '#a8453e',
-          light: '#d87069',
+          DEFAULT: '#f59e0b', // amber-500
+          dark: '#d97706',
+          light: '#fbbf24',
         },
         accent: {
-          DEFAULT: '#a0c7c4',
-          dark: '#8ab3b0',
-          light: '#b8d7d5',
+          DEFAULT: '#10b981', // emerald-500
+          dark: '#059669',
+          light: '#34d399',
         },
+      },
+      fontFamily: {
+        sans: ['Inter', 'ui-sans-serif', 'system-ui', 'Apple Color Emoji', 'Segoe UI Emoji'],
       },
     },
   },
