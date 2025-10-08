@@ -190,21 +190,21 @@ export function ProjectDetail({ project, onBack, onEdit, onUpdate }: ProjectDeta
         <div className="flex flex-wrap gap-2">
           <button
             onClick={() => setShowSummary(true)}
-            className="flex items-center gap-2 bg-accent text-black px-4 py-2 rounded-lg hover:bg-accent-dark transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent text-black hover:bg-emerald-300 transition-colors"
           >
             <FileText size={20} />
             Zusammenfassung
           </button>
           <button
             onClick={onEdit}
-            className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark transition-colors"
+            className="btn-primary rounded-full"
           >
             <Edit size={20} />
             Bearbeiten
           </button>
           <button
             onClick={handleDeleteProject}
-            className="flex items-center gap-2 bg-secondary text-white px-4 py-2 rounded-lg hover:bg-secondary-dark transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-secondary text-white hover:bg-secondary-dark transition-colors"
           >
             <Trash2 size={20} />
             Löschen
@@ -212,7 +212,7 @@ export function ProjectDetail({ project, onBack, onEdit, onUpdate }: ProjectDeta
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow p-6">
+      <div className="card p-6">
         <h1 className="text-3xl font-bold text-gray-800 mb-4">{project.customer_name}</h1>
         <div className="space-y-2 text-gray-600">
           <p><strong>Adresse:</strong> {project.address}</p>
@@ -226,12 +226,12 @@ export function ProjectDetail({ project, onBack, onEdit, onUpdate }: ProjectDeta
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow p-6">
+      <div className="card p-6">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-bold text-gray-800">{(project as any).scope === 'aussen' ? 'Bereiche' : 'Räume'}</h2>
           <button
             onClick={() => setShowNewRoomForm(true)}
-            className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark transition-colors"
+            className="btn-primary rounded-full"
           >
             <Plus size={20} />
             {(project as any).scope === 'aussen' ? 'Bereich hinzufügen' : 'Raum hinzufügen'}
@@ -239,7 +239,7 @@ export function ProjectDetail({ project, onBack, onEdit, onUpdate }: ProjectDeta
         </div>
 
         {showNewRoomForm && (
-          <form onSubmit={handleAddRoom} className="mb-6 bg-gradient-to-br from-accent-light to-white p-6 rounded-xl border-2 border-accent">
+          <form onSubmit={handleAddRoom} className="mb-6 bg-gradient-to-br from-emerald-50 to-white p-6 rounded-xl border border-emerald-200">
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-semibold text-gray-800 mb-3">
@@ -294,7 +294,7 @@ export function ProjectDetail({ project, onBack, onEdit, onUpdate }: ProjectDeta
                 <button
                   type="submit"
                   disabled={selectedRoomTypes.length === 0 || (selectedRoomTypes.includes('Eigener Raum') && !customRoomName.trim())}
-                  className="flex-1 bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary-dark transition-all disabled:opacity-50 disabled:cursor-not-allowed font-semibold shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                  className="flex-1 btn-primary justify-center py-3 disabled:opacity-50 disabled:cursor-not-allowed font-semibold shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
                 >
                   {(project as any).scope === 'aussen' ? 'Bereich hinzufügen' : 'Raum hinzufügen'}
                 </button>

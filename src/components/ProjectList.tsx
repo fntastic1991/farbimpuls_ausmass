@@ -87,7 +87,7 @@ export function ProjectList({ onSelectProject, onNewProject }: ProjectListProps)
         <h2 className="text-2xl font-bold text-gray-800">Projekte</h2>
         <button
           onClick={onNewProject}
-          className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark transition-colors"
+          className="btn-primary"
         >
           <Plus size={20} />
           Neues Projekt
@@ -102,7 +102,7 @@ export function ProjectList({ onSelectProject, onNewProject }: ProjectListProps)
             placeholder="Projekte suchen (Kunde, Adresse, Notizen)..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+            className="input pl-10"
           />
         </div>
       )}
@@ -130,17 +130,17 @@ export function ProjectList({ onSelectProject, onNewProject }: ProjectListProps)
             <div
               key={project.id}
               onClick={() => onSelectProject(project)}
-              className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow cursor-pointer p-6"
+              className="card hover:shadow-xl transition-shadow cursor-pointer p-6"
             >
               <div className="flex justify-between items-start mb-3">
                 <div>
-                  <h3 className="text-xl font-semibold text-primary-dark">
+                  <h3 className="text-xl font-semibold text-gray-900">
                     {project.customer_name}
                   </h3>
-                  <p className="text-sm text-primary mt-1">Kunde: {project.customer_name}</p>
+                  <p className="text-sm text-gray-600 mt-1">Kunde: {project.customer_name}</p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium text-primary border-2 border-accent">
+                  <span className="flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium text-primary bg-accent-light border border-accent">
                     Bexio
                     {project.bexio_sent ? (
                       <Send size={14} className="text-green-600" />
@@ -158,7 +158,7 @@ export function ProjectList({ onSelectProject, onNewProject }: ProjectListProps)
                 </div>
               </div>
 
-              <div className="space-y-2 text-primary">
+              <div className="space-y-2 text-gray-700">
                 <div className="flex items-center gap-2">
                   <MapPin size={16} />
                   <span>{project.address}</span>
@@ -173,7 +173,7 @@ export function ProjectList({ onSelectProject, onNewProject }: ProjectListProps)
               </div>
 
               {project.notes && (
-                <p className="mt-3 text-sm text-primary/70 line-clamp-2">
+                <p className="mt-3 text-sm text-gray-500 line-clamp-2">
                   {project.notes}
                 </p>
               )}

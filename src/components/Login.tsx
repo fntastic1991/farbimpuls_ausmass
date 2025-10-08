@@ -27,12 +27,12 @@ export function Login({ onSuccess }: LoginProps) {
   }
 
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center p-6">
+    <div className="min-h-screen app-gradient flex items-center justify-center p-6">
       <div className="w-full max-w-sm">
         <div className="flex justify-center mb-6">
           <img src="https://i.postimg.cc/Vsqw5gDN/logo-maler.png" alt="Farbimpuls" className="h-12 w-auto" />
         </div>
-        <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+        <div className="card p-6">
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">E‑Mail</label>
@@ -41,7 +41,7 @@ export function Login({ onSuccess }: LoginProps) {
                 required
                 value={email}
                 onChange={e=>setEmail(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary"
+                className="input py-3 rounded-xl"
               />
             </div>
             <div>
@@ -51,11 +51,11 @@ export function Login({ onSuccess }: LoginProps) {
                 required
                 value={password}
                 onChange={e=>setPassword(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary"
+                className="input py-3 rounded-xl"
               />
             </div>
             {error && <p className="text-sm text-red-600">{error}</p>}
-            <button type="submit" disabled={loading} className="w-full px-4 py-3 rounded-xl bg-primary text-white disabled:opacity-50">
+            <button type="submit" disabled={loading} className="btn-primary w-full justify-center py-3 rounded-xl disabled:opacity-50">
               {loading ? 'Anmelden…' : 'Anmelden'}
             </button>
           </form>
